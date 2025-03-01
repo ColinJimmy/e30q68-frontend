@@ -31,7 +31,6 @@ export default function ChatPage() {
   const [relatedDocuments, setRelatedDocuments] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Set initial messages on the client side to avoid hydration mismatch
   useEffect(() => {
     setMessages([
       {
@@ -45,7 +44,6 @@ export default function ChatPage() {
     setRelatedDocuments(mockLegalDocuments);
   }, []);
 
-  // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -67,6 +65,7 @@ export default function ChatPage() {
 
     setTimeout(() => {
       let responseContent = "I'll need to research that further. Could you provide more details?";
+      let shouldOpenSidebar = false;
 
       const legalKeywords = [
         { term: "IPC", response: "The Indian Penal Code (IPC) is the official criminal code of India." },
@@ -84,7 +83,12 @@ export default function ChatPage() {
               doc.title.toLowerCase().includes(keyword.term.toLowerCase()) ||
               doc.description.toLowerCase().includes(keyword.term.toLowerCase())
           );
-          setRelatedDocuments(filteredDocs.length > 0 ? filteredDocs : mockLegalDocuments.slice(0, 3));
+          if (filteredDocs.length > 0) {
+            setRelatedDocuments(filteredDocs);
+            shouldOpenSidebar = true;
+          } else {
+            setRelatedDocuments(mockLegalDocuments.slice(0, 3));
+          }
           break;
         }
       }
@@ -98,7 +102,9 @@ export default function ChatPage() {
 
       setMessages((prev) => [...prev, assistantMessage]);
       setIsLoading(false);
-      setRightSidebarOpen(true);
+      if (shouldOpenSidebar) {
+        setRightSidebarOpen(true);
+      }
 
       setChatHistory((prev) => [
         {
@@ -111,27 +117,32 @@ export default function ChatPage() {
         },
         ...prev,
       ]);
+      setRightSidebarOpen(!rightSidebarOpen)
     }, 1500);
   };
 
-    const toggleBookmark = (id: number) => {
-    setChatHistory((prev) => prev.map((chat) => (chat.id === id ? { ...chat, bookmarked: !chat.bookmarked } : chat)))
-  }
+  const toggleBookmark = (id: number) => {
+    setChatHistory((prev) =>
+      prev.map((chat) => (chat.id === id ? { ...chat, bookmarked: !chat.bookmarked } : chat))
+    );
+  };
 
   const addTag = (id: number, tag: string) => {
     setChatHistory((prev) =>
-      prev.map((chat) => (chat.id === id && !chat.tags.includes(tag) ? { ...chat, tags: [...chat.tags, tag] } : chat)),
-    )
-  }
+      prev.map((chat) =>
+        chat.id === id && !chat.tags.includes(tag) ? { ...chat, tags: [...chat.tags, tag] } : chat
+      )
+    );
+  };
 
   return (
-    <div className="relative flex h-dvh w-dvw flex-col overflow-y-hidden bg-background">
+    <div className="relative flex h-dvh w-dvw flex-col overflow-hidden bg-background">
+      <div className="z-50 relative">
+        <Header />
+      </div>
 
-      <Header />
-
-      {/* Main Content */}
-      <div className="flex flex-1 h-dvh w-dvw overflow-y-hidden">
-        {/* Left Sidebar - Chat History */}
+      <div className="flex flex-1 overflow-hidden pt-[64px] relative">
+        {/* Left Sidebar */}
         <AnimatePresence initial={false}>
           {leftSidebarOpen && (
             <motion.div
@@ -139,7 +150,7 @@ export default function ChatPage() {
               animate={{ width: 300, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="border-r bg-muted/40 h-dvh overflow-y-scroll z-10"
+              className="absolute left-0 top-0 h-full border-r bg-muted/40 overflow-y-auto z-40"
             >
               <div className="flex h-full flex-col">
                 <div className="p-4">
@@ -175,84 +186,84 @@ export default function ChatPage() {
         </AnimatePresence>
 
         {/* Main Chat Area */}
-        <div className="z-0 flex flex-1 flex-col h-full w-full overflow-y-hidden">
-          <div className="relative flex flex-1 w-full flex-col overflow-y-hidden">
-            {/* Toggle Left Sidebar Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-4 top-4 z-10 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
-              onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            >
-              {leftSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-              <span className="sr-only">Toggle History</span>
-            </Button>
+        <div className={`flex-1 relative h-full overflow-hidden transition-all duration-300
+          ${leftSidebarOpen ? 'ml-[300px]' : ''}
+          ${rightSidebarOpen ? 'mr-[350px]' : ''}`}>
+          
+          {/* Toggle Buttons */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed left-4 top-[76px] z-40 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+          >
+            {leftSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+            <span className="sr-only">Toggle History</span>
+          </Button>
 
-            {/* Toggle Right Sidebar Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-4 top-4 z-10 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
-              onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-            >
-              {rightSidebarOpen ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-              <span className="sr-only">Toggle Documents</span>
-            </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed right-4 top-[76px] z-50 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+            onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+          >
+            {rightSidebarOpen ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            <span className="sr-only">Toggle Documents</span>
+          </Button>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="mx-auto max-w-3xl space-y-4">
-                {messages.length === 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex flex-col items-center justify-center py-12 text-center"
-                  >
-                    <h2 className="text-3xl font-bold mb-2">
-                      Hello <span className="text-primary animate-pulse">User</span>
-                    </h2>
-                    <p className="text-muted-foreground max-w-md">
-                      Ask me anything about legal information, IPC sections, or government guidelines. I'm here to help.
-                    </p>
-                  </motion.div>
-                )}
-                {messages.map((message) => (
-                  <ChatMessage key={message.id} message={message} isSpeechEnabled={isSpeechEnabled} />
-                ))}
-                {isLoading && (
-                  <div className="flex items-center space-x-2">
-                    <div className="h-8 w-8 animate-pulse rounded-full bg-primary/20"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 w-24 animate-pulse rounded bg-primary/20"></div>
-                      <div className="h-4 w-64 animate-pulse rounded bg-primary/10"></div>
-                    </div>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-180px)]">
+            <div className="mx-auto max-w-3xl space-y-4">
+              {messages.length === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="flex flex-col items-center justify-center py-12 text-center"
+                >
+                  <h2 className="text-3xl font-bold mb-2">
+                    Hello <span className="text-primary animate-pulse">User</span>
+                  </h2>
+                  <p className="text-muted-foreground max-w-md">
+                    Ask me anything about legal information, IPC sections, or government guidelines. I'm here to help.
+                  </p>
+                </motion.div>
+              )}
+              {messages.map((message) => (
+                <ChatMessage key={message.id} message={message} isSpeechEnabled={isSpeechEnabled} />
+              ))}
+              {isLoading && (
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-primary/20"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 animate-pulse rounded bg-primary/20"></div>
+                    <div className="h-4 w-64 animate-pulse rounded bg-primary/10"></div>
                   </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
+          </div>
 
-            {/* Input */}
-            <div className="fixed bottom-0 left-0 w-full border-t bg-background p-4">
-              <form onSubmit={handleSendMessage} className="mx-auto flex max-w-3xl items-center gap-2">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about legal information..."
-                  className="flex-1"
-                  disabled={isLoading}
-                />
-                <Button type="submit" size="icon" disabled={isLoading}>
-                  <Send className="h-5 w-5" />
-                  <span className="sr-only">Send</span>
-                </Button>
-              </form>
-            </div>
+          {/* Input */}
+          <div className="absolute bottom-0 left-0 right-0 border-t bg-background p-4">
+            <form onSubmit={handleSendMessage} className="mx-auto flex max-w-3xl items-center gap-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about legal information..."
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button type="submit" size="icon" disabled={isLoading}>
+                <Send className="h-5 w-5" />
+                <span className="sr-only">Send</span>
+              </Button>
+            </form>
           </div>
         </div>
 
-        {/* Right Sidebar - Related Documents */}
+        {/* Right Sidebar */}
         <AnimatePresence initial={false}>
           {rightSidebarOpen && (
             <motion.div
@@ -260,7 +271,7 @@ export default function ChatPage() {
               animate={{ width: 350, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="border-l bg-muted/40 h-dvh overflow-y-scroll z-10"
+              className="absolute right-0 top-0 h-full border-l bg-muted/40 overflow-y-auto z-40"
             >
               <div className="flex h-full flex-col">
                 <div className="p-4">
@@ -279,5 +290,5 @@ export default function ChatPage() {
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }
