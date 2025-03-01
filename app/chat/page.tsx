@@ -30,7 +30,10 @@ export default function ChatPage() {
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [relatedDocuments, setRelatedDocuments] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [messageCount, setMessageCount] = useState(0);
+  const [messageCount, setMessageCount] = useState<number>(
+    parseInt(localStorage.getItem("messageCount") || "0", 0) || 0
+  );
+
 
   useEffect(() => {
     setMessages([
