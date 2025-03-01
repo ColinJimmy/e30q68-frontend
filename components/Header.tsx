@@ -23,7 +23,7 @@ export default function Header() {
               <span className="sr-only">Back to Home</span>
             </Button>
             <h1 className="text-xl font-bold">
-              AI <span className="text-primary">Legal</span> Assistant
+              My <span className="text-primary">Lawyer</span>
             </h1>
           </div>
           <div className="flex items-center gap-2">

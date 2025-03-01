@@ -30,6 +30,7 @@ export default function ChatPage() {
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [relatedDocuments, setRelatedDocuments] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messageCount, setMessageCount] = useState(0);
 
   useEffect(() => {
     setMessages([
@@ -48,8 +49,26 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    const savedCount = Number(localStorage.getItem("messageCount")) || 0;
+    setMessageCount(savedCount);
+
+    if (savedCount >= 2) {
+      router.push("/login");
+    }
+  }, []);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newCount = messageCount + 1;
+    setMessageCount(newCount);
+    localStorage.setItem("messageCount", newCount.toString());
+
+    if (newCount >= 2) {
+      router.push("/login");
+    }
+    
     if (!input.trim()) return;
 
     const userMessage = {
