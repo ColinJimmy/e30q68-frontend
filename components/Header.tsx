@@ -15,7 +15,7 @@ export default function Header() {
     const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
 
   return (
-      <header className="sticky top-0 left-0 w-dvw h-16 border-b px-4 py-3 z-20">
+      <header className="sticky top-0 left-0 w-dvw h-16 border-b px-4 py-3 z-20 bg-gray-100 dark:bg-gray-900">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
@@ -27,6 +27,7 @@ export default function Header() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <p className=' bg-neutral-950 py-2 px-3 font-bold rounded'><a href="/gov">Government Policies</a></p>
             <LanguageSelector />
             <ThemeToggle />
             <TooltipProvider>
