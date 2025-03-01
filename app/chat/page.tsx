@@ -41,7 +41,7 @@ export default function ChatPage() {
       },
     ]);
     setChatHistory(mockChatHistory);
-    setRelatedDocuments(mockLegalDocuments);
+    // setRelatedDocuments(mockLegalDocuments);
   }, []);
 
   useEffect(() => {
@@ -63,34 +63,36 @@ export default function ChatPage() {
     setInput("");
     setIsLoading(true);
 
+    const response = await fetch("http://127.0.0.1:5000/api/query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ question: input }),
+    });
+
+    const data = await response.json();
+
+    console.log("Answer: ", data.answer);
+    console.log("Sources: ", data.sources);
+
     setTimeout(() => {
-      let responseContent = "I'll need to research that further. Could you provide more details?";
+      let responseContent = data.answer || "I'll need to research that further. Could you provide more details?";
       let shouldOpenSidebar = false;
 
-      const legalKeywords = [
-        { term: "IPC", response: "The Indian Penal Code (IPC) is the official criminal code of India." },
-        { term: "section 302", response: "Section 302 of the IPC deals with punishment for murder." },
-        { term: "divorce", response: "Divorce laws in India vary based on religion and personal laws." },
-        { term: "property", response: "Property laws in India are governed by various acts including the Transfer of Property Act." },
-        { term: "corruption", response: "Corruption in India is addressed through the Prevention of Corruption Act, 1988." },
-      ];
+      // Store sources as related documents
+      const relatedDocs = data.sources?.map((source: any, index: number) => ({
+        id: index + 1,
+        title: `Source ${index + 1}`,
+        description: source.content,
+        page: source.page || "Unknown",
+        source: source.source || "Unknown",
+      })) || [];
 
-      for (const keyword of legalKeywords) {
-        if (input.toLowerCase().includes(keyword.term.toLowerCase())) {
-          responseContent = keyword.response;
-          const filteredDocs = mockLegalDocuments.filter(
-            (doc) =>
-              doc.title.toLowerCase().includes(keyword.term.toLowerCase()) ||
-              doc.description.toLowerCase().includes(keyword.term.toLowerCase())
-          );
-          if (filteredDocs.length > 0) {
-            setRelatedDocuments(filteredDocs);
-            shouldOpenSidebar = true;
-          } else {
-            setRelatedDocuments(mockLegalDocuments.slice(0, 3));
-          }
-          break;
-        }
+      setRelatedDocuments(relatedDocs);
+
+      if (relatedDocs.length > 0) {
+        shouldOpenSidebar = true;
       }
 
       const assistantMessage = {
@@ -102,6 +104,7 @@ export default function ChatPage() {
 
       setMessages((prev) => [...prev, assistantMessage]);
       setIsLoading(false);
+
       if (shouldOpenSidebar) {
         setRightSidebarOpen(true);
       }
@@ -117,9 +120,11 @@ export default function ChatPage() {
         },
         ...prev,
       ]);
-      setRightSidebarOpen(!rightSidebarOpen)
+
+      setRightSidebarOpen(true);
     }, 1500);
   };
+
 
   const toggleBookmark = (id: number) => {
     setChatHistory((prev) =>
@@ -194,21 +199,25 @@ export default function ChatPage() {
           <Button
             variant="outline"
             size="icon"
-            className="fixed left-4 top-[76px] z-40 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+            className="group fixed left-4 top-[76px] z-40 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
             onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
           >
             {leftSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-            <span className="sr-only">Toggle History</span>
+            
+            {/* Tooltip on hover */}
+            <span className="absolute left-full top-full mt-2 -translate-x-1/2 scale-0 rounded-md bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
+              Toggle History
+            </span>
           </Button>
 
           <Button
             variant="outline"
             size="icon"
-            className="fixed right-4 top-[76px] z-50 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+            className="group fixed right-4 top-[76px] z-50 shadow-md hover:bg-primary hover:text-primary-foreground transition-all duration-300"
             onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
           >
             {rightSidebarOpen ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-            <span className="sr-only">Toggle Documents</span>
+            <span className="absolute right-0 top-full mt-2 scale-0 rounded-md bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">Toggle Documents</span>
           </Button>
 
           {/* Messages */}

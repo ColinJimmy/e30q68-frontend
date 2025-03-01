@@ -22,7 +22,9 @@ export function DocumentPreview({ document }: DocumentPreviewProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   // Highlight legal terms in the document content
-  const highlightLegalTerms = (text: string) => {
+  const highlightLegalTerms = (text: string | undefined | null) => {
+    if (!text) return "" // Handle null or undefined cases
+
     const legalTerms = [
       { term: "IPC", color: "text-red-500" },
       { term: "section", color: "text-blue-500" },
@@ -47,8 +49,15 @@ export function DocumentPreview({ document }: DocumentPreviewProps) {
       highlightedText = highlightedText.replace(regex, `<span class="${color} font-medium">$&</span>`)
     })
 
+    // Handle **bold** formatting
+    highlightedText = highlightedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+
+    // Handle new lines
+    highlightedText = highlightedText.replace(/\n/g, "<br>")
+
     return highlightedText
-  }
+}
+
 
   return (
     <motion.div
@@ -77,9 +86,6 @@ export function DocumentPreview({ document }: DocumentPreviewProps) {
               <CardTitle className="text-sm font-medium">{document.title}</CardTitle>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {document.type} • {new Date(document.date).toLocaleDateString()}
-          </p>
         </CardHeader>
         <CardContent className="px-4 pb-2">
           <p className="text-sm text-muted-foreground">{document.description}</p>

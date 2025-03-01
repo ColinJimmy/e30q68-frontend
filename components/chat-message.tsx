@@ -101,7 +101,9 @@ export function ChatMessage({ message, isSpeechEnabled }: ChatMessageProps) {
           transition={{ duration: 0.3, delay: 0.1 }}
           className="prose prose-sm dark:prose-invert"
           dangerouslySetInnerHTML={{
-            __html: highlightLegalTerms(message.content),
+            __html: highlightLegalTerms(message.content)
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold **text**
+              .replace(/\n/g, '<br>'), // Handle new lines
           }}
         />
       </div>

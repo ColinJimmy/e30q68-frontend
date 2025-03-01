@@ -26,12 +26,10 @@ export default function Home() {
                 className="space-y-2"
               >
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  AI Legal Assistant with{" "}
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark animate-gradient">
-                    RAG Technology
-                  </span>
+                  My Lawyer
                 </h1>
-                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                <p className="text-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark animate-gradient">AI Legal Advisor</p>
+                <p className="mx-auto max-w-[700px] text-gray-300 md:text-xl dark:text-gray-400">
                   Get accurate, authorized legal information and clarifications without the need for initial in-person
                   consultations.
                 </p>
@@ -55,12 +53,11 @@ export default function Home() {
               >
                 <div className="flex justify-center">
                   <Link href="/chat">
-                    <Button className="relative overflow-hidden rounded-lg bg-gradient-to-r from-primary to-purple-600 px-8 py-6 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105">
-                      <span className="relative w-full h-full z-10 flex items-center gap-2">
+                    <Button className="bg-blue-600 relative overflow-hidden rounded-lg px-8 py-6 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:scale-105">
+                      <span className=" relative w-full h-full z-10 flex items-center gap-2">
                         Get Started
                         <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                       </span>
-                      <span className="absolute inset-0 h-full w-full bg-gradient-to-r from-blue-600 to-purple-700 opacity-0 transition-opacity duration-300 hover:opacity-100"></span>
                     </Button>
                   </Link>
                 </div>
