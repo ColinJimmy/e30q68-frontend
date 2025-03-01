@@ -1,134 +1,91 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronLeft, ChevronRight, Send, Volume2, VolumeX } from "lucide-react";
 
-import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { AnimatePresence, motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, Send, Volume2, VolumeX } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Toggle } from "@/components/ui/toggle"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ChatMessage } from "@/components/chat-message"
-import { DocumentPreview } from "@/components/document-preview"
-import { ChatHistory } from "@/components/chat-history"
-import { LanguageSelector } from "@/components/language-selector"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { mockChatHistory, mockLegalDocuments } from "@/lib/mock-data"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Toggle } from "@/components/ui/toggle";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChatMessage } from "@/components/chat-message";
+import { DocumentPreview } from "@/components/document-preview";
+import { ChatHistory } from "@/components/chat-history";
+import { LanguageSelector } from "@/components/language-selector";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { mockChatHistory, mockLegalDocuments } from "@/lib/mock-data";
+import Header from "@/components/Header";
 
 export default function ChatPage() {
-  const router = useRouter()
-  const [messages, setMessages] = useState<any[]>([
-    {
-      id: 1,
-      role: "assistant",
-      content: "Hello! I'm your AI legal assistant. How can I help you with legal information today?",
-      timestamp: new Date().toISOString(),
-    },
-  ])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false)
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(false)
-  const [chatHistory, setChatHistory] = useState(mockChatHistory)
-  const [relatedDocuments, setRelatedDocuments] = useState(mockLegalDocuments)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const router = useRouter();
+  const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [relatedDocuments, setRelatedDocuments] = useState<any[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Set initial messages on the client side to avoid hydration mismatch
+  useEffect(() => {
+    setMessages([
+      {
+        id: 1,
+        role: "assistant",
+        content: "Hello! I'm your AI legal assistant. How can I help you with legal information today?",
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    setChatHistory(mockChatHistory);
+    setRelatedDocuments(mockLegalDocuments);
+  }, []);
 
   // Scroll to bottom of messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
-
-  // Handle responsive layout
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setLeftSidebarOpen(false)
-        setRightSidebarOpen(false)
-      } else if (window.innerWidth < 1024) {
-        setLeftSidebarOpen(true)
-        setRightSidebarOpen(false)
-      } else {
-        setLeftSidebarOpen(true)
-        setRightSidebarOpen(true)
-      }
-    }
-
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
+    e.preventDefault();
+    if (!input.trim()) return;
 
-    // Add user message
     const userMessage = {
       id: messages.length + 1,
       role: "user",
       content: input,
       timestamp: new Date().toISOString(),
-    }
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setIsLoading(true)
+    };
 
-    // Simulate AI response after a delay
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
     setTimeout(() => {
-      // Mock response based on legal keywords
-      let responseContent = "I'll need to research that further. Could you provide more details?"
+      let responseContent = "I'll need to research that further. Could you provide more details?";
 
       const legalKeywords = [
-        {
-          term: "IPC",
-          response:
-            "The Indian Penal Code (IPC) is the official criminal code of India. It covers all substantive aspects of criminal law.",
-        },
-        {
-          term: "section 302",
-          response:
-            "Section 302 of the IPC deals with punishment for murder. Whoever commits murder shall be punished with death, or imprisonment for life, and shall also be liable to fine.",
-        },
-        {
-          term: "divorce",
-          response:
-            "Divorce laws in India vary based on religion and personal laws. Under the Hindu Marriage Act, divorce can be sought on grounds including adultery, cruelty, desertion, etc.",
-        },
-        {
-          term: "property",
-          response:
-            "Property laws in India are governed by various acts including the Transfer of Property Act, Registration Act, and personal laws based on religion.",
-        },
-        {
-          term: "corruption",
-          response:
-            "Corruption in India is addressed through the Prevention of Corruption Act, 1988, which was amended in 2018 to strengthen anti-corruption measures.",
-        },
-      ]
+        { term: "IPC", response: "The Indian Penal Code (IPC) is the official criminal code of India." },
+        { term: "section 302", response: "Section 302 of the IPC deals with punishment for murder." },
+        { term: "divorce", response: "Divorce laws in India vary based on religion and personal laws." },
+        { term: "property", response: "Property laws in India are governed by various acts including the Transfer of Property Act." },
+        { term: "corruption", response: "Corruption in India is addressed through the Prevention of Corruption Act, 1988." },
+      ];
 
       for (const keyword of legalKeywords) {
         if (input.toLowerCase().includes(keyword.term.toLowerCase())) {
-          responseContent = keyword.response
-
-          // Update related documents based on keyword
+          responseContent = keyword.response;
           const filteredDocs = mockLegalDocuments.filter(
             (doc) =>
               doc.title.toLowerCase().includes(keyword.term.toLowerCase()) ||
-              doc.description.toLowerCase().includes(keyword.term.toLowerCase()),
-          )
-
-          if (filteredDocs.length > 0) {
-            setRelatedDocuments(filteredDocs)
-          } else {
-            setRelatedDocuments(mockLegalDocuments.slice(0, 3))
-          }
-
-          break
+              doc.description.toLowerCase().includes(keyword.term.toLowerCase())
+          );
+          setRelatedDocuments(filteredDocs.length > 0 ? filteredDocs : mockLegalDocuments.slice(0, 3));
+          break;
         }
       }
 
@@ -137,13 +94,12 @@ export default function ChatPage() {
         role: "assistant",
         content: responseContent,
         timestamp: new Date().toISOString(),
-      }
+      };
 
-      setMessages((prev) => [...prev, assistantMessage])
-      setIsLoading(false)
-      setRightSidebarOpen(true) // Open the right sidebar to show related documents
+      setMessages((prev) => [...prev, assistantMessage]);
+      setIsLoading(false);
+      setRightSidebarOpen(true);
 
-      // Add to chat history
       setChatHistory((prev) => [
         {
           id: prev.length + 1,
@@ -154,11 +110,11 @@ export default function ChatPage() {
           bookmarked: false,
         },
         ...prev,
-      ])
-    }, 1500)
-  }
+      ]);
+    }, 1500);
+  };
 
-  const toggleBookmark = (id: number) => {
+    const toggleBookmark = (id: number) => {
     setChatHistory((prev) => prev.map((chat) => (chat.id === id ? { ...chat, bookmarked: !chat.bookmarked } : chat)))
   }
 
@@ -169,44 +125,12 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
-      {/* Header */}
-      <header className="border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
-              <ChevronLeft className="h-5 w-5" />
-              <span className="sr-only">Back to Home</span>
-            </Button>
-            <h1 className="text-xl font-bold">
-              AI <span className="text-primary">Legal</span> Assistant
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <LanguageSelector />
-            <ThemeToggle />
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Toggle
-                    aria-label="Toggle text-to-speech"
-                    pressed={isSpeechEnabled}
-                    onPressedChange={setIsSpeechEnabled}
-                  >
-                    {isSpeechEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                  </Toggle>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Toggle text-to-speech</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-      </header>
+    <div className="relative flex h-dvh w-dvw flex-col overflow-y-hidden bg-background">
+
+      <Header />
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 h-dvh w-dvw overflow-y-hidden">
         {/* Left Sidebar - Chat History */}
         <AnimatePresence initial={false}>
           {leftSidebarOpen && (
@@ -215,7 +139,7 @@ export default function ChatPage() {
               animate={{ width: 300, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="border-r bg-muted/40"
+              className="border-r bg-muted/40 h-dvh overflow-y-scroll z-10"
             >
               <div className="flex h-full flex-col">
                 <div className="p-4">
@@ -251,8 +175,8 @@ export default function ChatPage() {
         </AnimatePresence>
 
         {/* Main Chat Area */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="relative flex flex-1 flex-col overflow-hidden">
+        <div className="z-0 flex flex-1 flex-col h-full w-full overflow-y-hidden">
+          <div className="relative flex flex-1 w-full flex-col overflow-y-hidden">
             {/* Toggle Left Sidebar Button */}
             <Button
               variant="outline"
@@ -310,7 +234,7 @@ export default function ChatPage() {
             </div>
 
             {/* Input */}
-            <div className="border-t bg-background p-4">
+            <div className="fixed bottom-0 left-0 w-full border-t bg-background p-4">
               <form onSubmit={handleSendMessage} className="mx-auto flex max-w-3xl items-center gap-2">
                 <Input
                   value={input}
@@ -336,7 +260,7 @@ export default function ChatPage() {
               animate={{ width: 350, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="border-l bg-muted/40"
+              className="border-l bg-muted/40 h-dvh overflow-y-scroll z-10"
             >
               <div className="flex h-full flex-col">
                 <div className="p-4">
@@ -357,4 +281,3 @@ export default function ChatPage() {
     </div>
   )
 }
-
